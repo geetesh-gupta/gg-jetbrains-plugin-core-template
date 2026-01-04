@@ -1,6 +1,7 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import java.util.Properties
 
 plugins {
     id("java") // Java support
@@ -13,6 +14,20 @@ plugins {
 
 group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
+
+// --- GG Custom Property Loader ---
+val localProperties = Properties()
+val localPropertiesFile = project.rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
+}
+
+fun getProp(name: String): String? = localProperties.getProperty(name) ?: System.getenv(name)
+fun getFileContent(propName: String): String? {
+    val path = getProp(propName + "File") ?: return null
+    val file = project.rootProject.file(path)
+    return if (file.exists()) file.readText() else null
+}
 
 // Set the JVM language level used to build the project.
 kotlin {
@@ -89,17 +104,15 @@ intellijPlatform {
     }
 
     signing {
-        certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
-        privateKey = providers.environmentVariable("PRIVATE_KEY")
-        password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
+        certificateChain = providers.provider { getFileContent("certificateChain") ?: getProp("CERTIFICATE_CHAIN") }
+        privateKey = providers.provider { getFileContent("privateKey") ?: getProp("PRIVATE_KEY") }
+        password = providers.provider { getProp("privateKeyPassword") ?: getProp("PRIVATE_KEY_PASSWORD") }
     }
 
     publishing {
-        token = providers.environmentVariable("PUBLISH_TOKEN")
-        // The pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
-        // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
-        // https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html#specifying-a-release-channel
-        channels = providers.gradleProperty("pluginVersion").map { listOf(it.substringAfter('-', "").substringBefore('.').ifEmpty { "default" }) }
+        token = providers.provider { getProp("PUBLISH_TOKEN") }
+        channels = providers.gradleProperty("pluginVersion")
+            .map { listOf(it.substringAfter('-', "").substringBefore('.').ifEmpty { "default" }) }
     }
 
     pluginVerification {
