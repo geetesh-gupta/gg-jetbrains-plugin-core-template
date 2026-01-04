@@ -1,0 +1,29 @@
+name: Sync Public Documentation
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'README.md'
+      - 'CHANGELOG.md'
+
+jobs:
+  sync-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Private Repo
+        uses: actions/checkout@v4
+
+      - name: Pushing Docs to Public Repo
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.SYNC_DOCS_TOKEN }}
+        with:
+          source-directory: '.'
+          destination-github-username: 'geetesh-gupta'
+          destination-repository-name: '${{ github.event.repository.name }}-Docs'
+          user-email: 'geeteshgupta98@gmail.com'
+          target-branch: main
+          target-directory: '.'
+          # Sync both README and CHANGELOG
+          file-selection: 'README.md,CHANGELOG.md'
