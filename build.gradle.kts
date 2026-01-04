@@ -29,6 +29,9 @@ fun getFileContent(propName: String): String? {
     return if (file.exists()) file.readText() else null
 }
 
+// Define the isPro flag (default to false)
+val isPro: Boolean = project.findProperty("isPro")?.toString()?.toBoolean() ?: false
+
 // Set the JVM language level used to build the project.
 kotlin {
     jvmToolchain(21)
@@ -101,6 +104,18 @@ intellijPlatform {
         ideaVersion {
             sinceBuild = providers.gradleProperty("pluginSinceBuild")
         }
+
+        // This block handles the dynamic commenting of the descriptor
+        patchPluginXml {
+            val descriptor = """<product-descriptor code="PGG${project.name.toUpperCase()}" release-date="20260101" release-version="20261" optional="true"/>"""
+            
+            // If isPro is true (usually during runIde), we wrap it in XML comments
+            if (isPro) {
+                changeNotes.set("RUNNING IN PRO MODE - Descriptor Disabled")
+                // Logic to comment out the descriptor during build
+                pluginDescription.set(pluginDescription.get().replace(descriptor, ""))
+            }
+        }
     }
 
     signing {
@@ -118,6 +133,14 @@ intellijPlatform {
     pluginVerification {
         ides {
             recommended()
+        }
+    }
+
+    // Configure the execution environment
+    execution {
+        runIde {
+            // Pass the Pro flag as a system property to the sandbox IDE
+            systemProperty("gg.isPro", isPro.toString())
         }
     }
 }
@@ -167,5 +190,13 @@ intellijPlatformTesting {
                 robotServerPlugin()
             }
         }
+    }
+}
+
+// Ensure runIde defaults to isPro=true for testing
+tasks.runIde {
+    if (project.findProperty("isPro") == null) {
+        // You can force it here or just run with -PisPro=true
+        systemProperty("gg.isPro", "true")
     }
 }
