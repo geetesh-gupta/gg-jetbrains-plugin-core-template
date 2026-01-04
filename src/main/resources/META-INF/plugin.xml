@@ -1,15 +1,17 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.geeteshgupta.ggjetbrainsplugincoretemplate</id>
-    <name>gg-jetbrains-plugin-core-template</name>
+    <id>com.gg.plugins.REPLACE_NAME_LOW</id>
+    <name>REPLACE_NAME</name>
     <vendor>geetesh-gupta</vendor>
+
+    <product-descriptor code="PGGREPLACE_NAME_UP" release-date="20260101" release-version="20261" optional="true"/>
 
     <depends>com.intellij.modules.platform</depends>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.geeteshgupta.ggjetbrainsplugincoretemplate.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
-        <postStartupActivity implementation="com.github.geeteshgupta.ggjetbrainsplugincoretemplate.startup.MyProjectActivity" />
+        <toolWindow factoryClass="com.gg.plugins.REPLACE_NAME_LOW.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <postStartupActivity implementation="com.gg.plugins.REPLACE_NAME_LOW.startup.MyProjectActivity" />
     </extensions>
 </idea-plugin>
